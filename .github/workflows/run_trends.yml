@@ -2,46 +2,54 @@ name: Run Google Trends Monthly
 
 on:
   schedule:
-    - cron: '0 3 1 * *'
-  workflow_dispatch:
+    - cron: '0 3 1 * *'  # 3am UTC on the 1st of every month
+  workflow_dispatch:      # allows manual triggering
 
 jobs:
   run-r-script:
     runs-on: ubuntu-latest
 
     steps:
+    # 1️⃣ Checkout repo
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    # 2️⃣ Install system dependencies for R packages
     - name: Install system dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
 
+    # 3️⃣ Set up R
     - name: Set up R
       uses: r-lib/actions/setup-r@v2
 
+    # 4️⃣ Cache R packages to speed up future runs
     - name: Cache R packages
       uses: actions/cache@v3
       with:
         path: ${{ env.R_LIBS_USER }}
-        key: ${{ runner.os }}-r-packages-${{ hashFiles('trends_script.R') }}
+        key: ${{ runner.os }}-r-packages-${{ hashFiles('Google_Trends_Script_LFT.R') }}
         restore-keys: |
           ${{ runner.os }}-r-packages-
 
+    # 5️⃣ Install R dependencies
     - name: Install R dependencies
       run: |
         R -e "install.packages(c('gtrendsR','readr','lubridate'), repos='https://cloud.r-project.org')"
 
+    # 6️⃣ Run your Google Trends script
     - name: Run Google Trends script
       run: |
         Rscript Google_Trends_Script_LFT.R
 
+    # 7️⃣ Commit the generated CSV(s) in data/ folder
     - name: Commit generated CSV
-      run: |
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
-        git add data/*.csv
-        git commit -m "Add new monthly CSV"
-        git push
-      continue-on-error: true
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: "Add new monthly CSV"
+        branch: main
+        file_pattern: "data/*.csv"
+        commit_user_name: "GitHub Actions"
+        commit_user_email: "actions@github.com"
+        push: true
