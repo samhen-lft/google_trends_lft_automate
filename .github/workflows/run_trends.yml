@@ -23,7 +23,7 @@ jobs:
 
     - name: Run Google Trends script
       run: |
-        Rscript trends_script.R
+        Rscript Google_Trends_Script_LFT.R
 
     - name: Commit generated CSV
       run: |
