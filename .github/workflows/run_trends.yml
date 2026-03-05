@@ -5,6 +5,9 @@ on:
     - cron: '0 3 1 * *'
   workflow_dispatch:
 
+permissions:
+  contents: write   # <-- THIS FIXES THE PROBLEM
+
 jobs:
   run-r-script:
     runs-on: ubuntu-latest
@@ -31,8 +34,6 @@ jobs:
 
       - name: Commit generated CSV
         uses: stefanzweifel/git-auto-commit-action@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # ✅ must be set for push
         with:
           commit_message: "Add new monthly CSV"
           branch: main
